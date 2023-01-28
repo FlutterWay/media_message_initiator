@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -37,6 +38,17 @@ class _MyHomePageState extends State<MyHomePage> {
     if (data != null) {
       data.text;
     }
+  }
+
+  @override
+  void initState() {
+    //initCamera();
+    super.initState();
+  }
+
+  initCamera() async {
+    await MediaMessageInitiator.setAvaliableCameras();
+    await MediaMessageInitiator.initializeCamera();
   }
 
   @override

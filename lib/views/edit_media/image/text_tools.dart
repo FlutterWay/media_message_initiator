@@ -55,91 +55,88 @@ class _TextToolsState extends State<TextTools> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 40),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: TextButton(
-                    onPressed: () {
-                      widget.onFinished();
-                    },
-                    child: Container(
-                      width: 60,
-                      height: 30,
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                              width: 1, color: controller.config.textColor),
-                          borderRadius: BorderRadius.circular(20)),
-                      alignment: Alignment.center,
-                      child: Text(
-                        controller.config.finish,
-                        style: TextStyle(color: controller.config.textColor),
-                      ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: TextButton(
+                  onPressed: () {
+                    widget.onFinished();
+                  },
+                  child: Container(
+                    width: 60,
+                    height: 30,
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                            width: 1, color: controller.config.textColor),
+                        borderRadius: BorderRadius.circular(20)),
+                    alignment: Alignment.center,
+                    child: Text(
+                      controller.config.finish,
+                      style: TextStyle(color: controller.config.textColor),
                     ),
                   ),
                 ),
-                const Spacer(),
-                if (widget.editor.controller.canUndo)
-                  TextButton(
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.only(top: 10),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () {
-                        widget.editor.undo();
-                      },
-                      child: Icon(
-                        Icons.undo,
-                        color: controller.config.iconColor,
-                      )),
-                Column(
-                  children: [
-                    MaterialButton(
-                      onPressed: () {},
-                      color: widget.editor.color,
-                      padding: const EdgeInsets.all(8),
-                      shape: const CircleBorder(),
-                      child: Text(
-                        "Y",
-                        style: TextStyle(
-                            fontSize: 24,
-                            color: controller.config.textColor,
-                            fontWeight: FontWeight.bold),
-                      ),
+              ),
+              const Spacer(),
+              if (widget.editor.controller.canUndo)
+                TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.only(top: 10),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Divider(),
-                    SizedBox(
-                      width: 20,
-                      height: 200,
-                      child: RotatedBox(
-                        quarterTurns: 1,
-                        child: SliderPicker(
-                          min: 0.0,
-                          max: 1.0,
-                          value: colorValue,
-                          onChanged: (value) {
-                            setState(() {
-                              colorValue = value;
-                              widget.editor.changeColor(
-                                  hueColors[(colorValue * 14).round()]);
-                            });
-                          },
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: hueColors),
-                            ),
+                    onPressed: () {
+                      widget.editor.undo();
+                    },
+                    child: Icon(
+                      Icons.undo,
+                      color: controller.config.iconColor,
+                    )),
+              Column(
+                children: [
+                  MaterialButton(
+                    onPressed: () {},
+                    color: widget.editor.color,
+                    padding: const EdgeInsets.all(8),
+                    shape: const CircleBorder(),
+                    child: Text(
+                      "Y",
+                      style: TextStyle(
+                          fontSize: 24,
+                          color: controller.config.textColor,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const Divider(),
+                  SizedBox(
+                    width: 20,
+                    height: 200,
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: SliderPicker(
+                        min: 0.0,
+                        max: 1.0,
+                        value: colorValue,
+                        onChanged: (value) {
+                          setState(() {
+                            colorValue = value;
+                            widget.editor.changeColor(
+                                hueColors[(colorValue * 14).round()]);
+                          });
+                        },
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: hueColors),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
           Consumer<ScreenHeight>(builder: (context, keyboard, child) {
             return Padding(

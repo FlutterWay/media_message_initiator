@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gallery_picker/gallery_picker.dart';
 import 'package:get/get.dart';
 import '/views/camera_page/camera_page_bottom/camera_page_bottom.dart';
@@ -23,7 +24,9 @@ class _CameraPageState extends State<CameraPage> {
   Future<void>? initalizing;
   @override
   void initState() {
-    initalizing = !controller.isCameraInitialized
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky,
+        overlays: [SystemUiOverlay.bottom]);
+    initalizing = !controller.isInitialized
         ? controller.initialize().then((value) {
             if (mounted) {
               setState(() {});
@@ -47,6 +50,10 @@ class _CameraPageState extends State<CameraPage> {
             controller.selectedMedia.map((e) => e.mediaFile).toList(),
         extraRecentMedia:
             controller.cameraMedia.map((e) => e.mediaFile).toList(),
+        onWillPop: () async {
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          return true;
+        },
         onSelect: ((selectedMedia) {}),
         config: controller.galleryPickerConfig,
         multipleMediaBuilder: (media, context) {
@@ -54,17 +61,17 @@ class _CameraPageState extends State<CameraPage> {
           return const EditMediaPage();
         },
         body: Stack(
+          fit: StackFit.expand,
           children: [
-            if (controller.isCameraInitialized)
-              CameraView(controller: controller),
+            if (controller.isInitialized) CameraView(controller: controller),
             const CameraPageTop(),
             SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: CameraPageBottom(
-                  controller: controller,
-                ),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: CameraPageBottom(
+                controller: controller,
               ),
+            ),
           ],
         ),
       );

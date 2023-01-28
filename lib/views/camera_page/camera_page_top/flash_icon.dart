@@ -14,7 +14,7 @@ class FlashIcon extends StatelessWidget {
   FlashIcon({super.key}) {
     controller = PageController(
         initialPage:
-            iconDatas.indexOf(getFlashIcon(cameraController.flashType)));
+            iconDatas.indexOf(getFlashIcon(cameraController.flashType!)));
   }
 
   @override

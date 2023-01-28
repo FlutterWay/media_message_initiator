@@ -52,7 +52,6 @@ class _EditMediaPageState extends State<EditMediaPage> {
                           (selectedMedia.mediaFile.isVideo ||
                               (selectedMedia.editor != null &&
                                   !selectedMedia.editor!.isDrawMode))) {
-                        print("UNFOCUSSSSSSSSSSSS");
                         currentFocus.unfocus();
                         if (selectedMedia.mediaFile.isImage) {
                           selectedMedia.editor!.close();
@@ -120,7 +119,7 @@ class _EditMediaPageState extends State<EditMediaPage> {
                                             : isOpened && !keyboard.isOpen
                                                 ? EmojiGifPickerPanel
                                                     .sizes.height
-                                                : 0),
+                                                : 10),
                                     child: Padding(
                                       padding:
                                           const EdgeInsets.only(bottom: 10.0),
@@ -149,6 +148,9 @@ class _EditMediaPageState extends State<EditMediaPage> {
                                               messageText = text;
                                             },
                                           ),
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
                                           Row(
                                             children: [
                                               const Expanded(
@@ -159,7 +161,7 @@ class _EditMediaPageState extends State<EditMediaPage> {
                                               MaterialButton(
                                                 onPressed: () {
                                                   controller.generateMessage(
-                                                      messageText);
+                                                      messageText, context);
                                                 },
                                                 color: controller.config
                                                     .floatingActionButtonColor,

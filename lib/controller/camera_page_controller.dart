@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_emoji_gif_picker/flutter_emoji_gif_picker.dart'
     as emoji;
 import 'package:get/get.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/config.dart';
 import '../models/media_file.dart';
 import '../models/media_type.dart';
@@ -25,24 +27,26 @@ class CameraPageController extends GetxController {
   double _minAvailableZoom = 1.0;
   double _maxAvailableZoom = 1.0;
   double _baseScale = 1.0;
+  double _dynamicScale = 1.0;
   double _currentScale = 1.0;
   List<CameraDescription>? _cameras;
 
   bool _isRecording = false;
   bool _isTakingPicture = false;
-  CameraLensDirection _cameraLensDirection = CameraLensDirection.back;
-  FlashType flashType = FlashType.off;
+  bool _isInitialized = false;
+  CameraLensDirection? _cameraLensDirection;
+  FlashType? flashType;
   bool get isRecording => _isRecording;
   bool get isTakingPicture => _isTakingPicture;
   bool get anyProcess => _isTakingPicture || _isRecording;
-  bool get isCameraInitialized => _cameraController != null;
+  bool get isInitialized => _isInitialized;
   CameraController? get cameraController => _cameraController;
   double get currentScale => _currentScale;
   List<EditableMedia> get allMedia => _allMedia;
   List<EditableMedia> get selectedMedia => _selectedMedia;
-  CameraLensDirection get cameraLensDirectio => _cameraLensDirection;
+  CameraLensDirection? get cameraLensDirectio => _cameraLensDirection;
   List<Person> get sharedPeopleList => _sharedPeopleList;
-
+  SharedPreferences? prefs;
   gallery_picker.Config get galleryPickerConfig => gallery_picker.Config(
         mode: config.emojiPickerConfig.mode == Mode.light
             ? gallery_picker.Mode.light
@@ -74,9 +78,15 @@ class CameraPageController extends GetxController {
 
   Function(Person person)? onClickedPerson;
 
-  Function(List<MediaFile> media, String message) onFinished;
-  Config config;
-  CameraPageController({required this.onFinished, required this.config});
+  late Function(List<MediaFile> media, String message) onFinished;
+  late Config config;
+
+  void configuration(
+      {required dynamic Function(List<MediaFile>, String) onFinished,
+      required Config config}) {
+    this.onFinished = onFinished;
+    this.config = config;
+  }
 
   void updateSelectedMedia(List<gallery_picker.MediaFile> media) {
     var selectedFiles = media
@@ -116,6 +126,7 @@ class CameraPageController extends GetxController {
 
   void changeFlashType(FlashType mode) {
     flashType = mode;
+    setFlashType();
     switch (mode) {
       case FlashType.auto:
         if (cameraController != null && initialized) {
@@ -133,16 +144,18 @@ class CameraPageController extends GetxController {
   }
 
   Future<void> getAvaliableCameras() async {
-    _cameras = await availableCameras();
+    if (_cameras == null || _cameras!.isEmpty) {
+      _cameras = await availableCameras();
+    }
   }
 
   Future<void> initializeCamera() async {
     if (_cameras != null &&
         _cameras!
             .any((camera) => camera.lensDirection == _cameraLensDirection)) {
-      final front = _cameras!
+      final camera = _cameras!
           .firstWhere((camera) => camera.lensDirection == _cameraLensDirection);
-      _cameraController = CameraController(front, ResolutionPreset.high);
+      _cameraController = CameraController(camera, ResolutionPreset.high);
       if (kDebugMode) {
         print(_cameraLensDirection);
       }
@@ -160,8 +173,9 @@ class CameraPageController extends GetxController {
     _cameraLensDirection = _cameraLensDirection == CameraLensDirection.back
         ? CameraLensDirection.front
         : CameraLensDirection.back;
+    setCameraDirection();
     await initializeCamera();
-    update();
+    Future.delayed(const Duration(milliseconds: 500)).then((value) => update());
   }
 
   Future<void> initialize() async {
@@ -169,12 +183,91 @@ class CameraPageController extends GetxController {
       _allMedia = value.map((e) => EditableMedia.mediaFile(e)).toList();
       update();
     });
-    await initializeCamera();
+    prefs ??= await SharedPreferences.getInstance();
+    if (flashType == null) {
+      await fetchFlashType();
+    }
+    if (_cameraLensDirection == null) {
+      await fetchCameraDirection();
+    }
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      await initializeCamera();
+    }
     gallery_picker.GalleryPicker.listenSelectedFiles.listen((media) {
       updateSelectedMedia(media);
       update();
     });
+    _isInitialized = true;
     update();
+  }
+
+  Future<void> fetchFlashType() async {
+    String? type = prefs!.getString('flashType');
+    if (type != null) {
+      flashType = stringToFlashType(type);
+    } else {
+      flashType = FlashType.off;
+      await setFlashType();
+    }
+  }
+
+  Future<void> fetchCameraDirection() async {
+    String? direction = prefs!.getString('cameraDirection');
+    if (direction != null) {
+      _cameraLensDirection = stringToDirection(direction);
+    } else {
+      _cameraLensDirection = CameraLensDirection.back;
+      await setCameraDirection();
+    }
+  }
+
+  Future<void> setCameraDirection() async {
+    await prefs!
+        .setString('cameraDirection', directionToString(_cameraLensDirection!));
+  }
+
+  Future<void> setFlashType() async {
+    await prefs!.setString('flashType', flashTypeToString(flashType!));
+  }
+
+  String directionToString(CameraLensDirection direction) {
+    switch (direction) {
+      case CameraLensDirection.front:
+        return "front";
+      default:
+        return "back";
+    }
+  }
+
+  CameraLensDirection stringToDirection(String direction) {
+    switch (direction) {
+      case "front":
+        return CameraLensDirection.front;
+      default:
+        return CameraLensDirection.back;
+    }
+  }
+
+  String flashTypeToString(FlashType type) {
+    switch (type) {
+      case FlashType.auto:
+        return "auto";
+      case FlashType.off:
+        return "off";
+      case FlashType.on:
+        return "on";
+    }
+  }
+
+  FlashType stringToFlashType(String type) {
+    switch (type) {
+      case "auto":
+        return FlashType.auto;
+      case "off":
+        return FlashType.off;
+      default:
+        return FlashType.on;
+    }
   }
 
   Future<void> startVideoRecording() async {
@@ -286,13 +379,40 @@ class CameraPageController extends GetxController {
     }
   }
 
+  focus(TapUpDetails details, BuildContext context) async {
+    if (cameraController != null) {
+      double x = details.localPosition.dx;
+      double y = details.localPosition.dy;
+
+      double fullWidth = MediaQuery.of(context).size.width;
+      double cameraHeight = fullWidth * cameraController!.value.aspectRatio;
+
+      double xp = x / fullWidth;
+      double yp = y / cameraHeight;
+
+      Offset point = Offset(xp, yp);
+      await cameraController!.setFocusPoint(point);
+    }
+  }
+
+  void scaleEnd() {
+    _dynamicScale = currentScale;
+  }
+
   Future<void> scaleUpdate(
       {required double scale, required int pointers}) async {
+    print("scaleUpdate:$scale");
     if (_cameraController == null || pointers != 2) {
       return;
     }
-    _currentScale =
-        (_baseScale * scale).clamp(_minAvailableZoom, _maxAvailableZoom);
+    double total = _dynamicScale + scale - 1;
+    if (total > _maxAvailableZoom) {
+      _currentScale = _maxAvailableZoom;
+    } else if (total < _minAvailableZoom) {
+      _currentScale = _minAvailableZoom;
+    } else {
+      _currentScale = total;
+    }
     await _cameraController!.setZoomLevel(_currentScale);
   }
 
@@ -306,7 +426,7 @@ class CameraPageController extends GetxController {
     }
   }
 
-  Future<void> generateMessage(String message) async {
+  Future<void> generateMessage(String message, BuildContext context) async {
     List<MediaFile> files = [];
     for (var file in selectedMedia) {
       await file.setEdittedFile();
@@ -318,14 +438,18 @@ class CameraPageController extends GetxController {
           edittedFile: file.edittedFile));
     }
     onFinished(files, message);
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+    // ignore: use_build_context_synchronously
+    Navigator.pop(context);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   Future<void> resetScale() async {
-    _baseScale = _currentScale;
-    await _cameraController!.setZoomLevel(_currentScale);
+    await _cameraController!.setZoomLevel(_baseScale);
   }
 
-  void onViewFinderTap(TapDownDetails details, BoxConstraints constraints) {
+  void onViewFinderTap(TapUpDetails details, BoxConstraints constraints) {
     if (_cameraController == null) {
       return;
     }
@@ -381,12 +505,24 @@ class CameraPageController extends GetxController {
     if (_cameraController != null) {
       await _cameraController!.dispose();
       _cameraController = null;
+      _isRecording = false;
+      _isTakingPicture = false;
+      _minAvailableZoom = 1.0;
+      _maxAvailableZoom = 1.0;
+      _baseScale = 1.0;
+      _currentScale = 1.0;
+      _dynamicScale = 1.0;
     }
   }
 
   void clearFiles() {
     _allMedia = [];
     _selectedMedia = [];
+    cameraMedia = [];
+  }
+
+  void clearPeople() {
+    _sharedPeopleList = [];
   }
 
   void resetStatus() {
@@ -394,10 +530,20 @@ class CameraPageController extends GetxController {
     _isTakingPicture = false;
   }
 
-  @override
-  Future<void> dispose() async {
+  void onWillPop() {
     clearFiles();
+    clearPeople();
+    _isInitialized = false;
+    gallery_picker.GalleryPicker.dispose();
+    gallery_picker.GalleryPicker.disposeSelectedFilesListener();
+  }
+
+  Future<void> disposeController() async {
+    clearFiles();
+    clearPeople();
     await disposeCamera();
-    super.dispose();
+    _isInitialized = false;
+    gallery_picker.GalleryPicker.disposeSelectedFilesListener();
+    GetInstance().delete<CameraPageController>();
   }
 }

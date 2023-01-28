@@ -144,8 +144,8 @@ class _CropImageState extends State<CropImage> {
                     var data = rotatedImage ??
                         (await widget.media.mediaFile.getData());
                     final originalImage = img.decodeImage(data);
-                    var rotImg = img.copyRotate(originalImage!, -90);
-                    rotatedImage = img.encodeJpg(rotImg) as Uint8List;
+                    var rotImg = img.copyRotate(originalImage!, angle: -90);
+                    rotatedImage = img.encodeJpg(rotImg);
                     await Future.delayed(const Duration(milliseconds: 300));
                     setState(() {
                       rotating = false;

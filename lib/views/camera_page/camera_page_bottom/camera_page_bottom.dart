@@ -15,7 +15,7 @@ class CameraPageBottom extends StatelessWidget {
       children: [
         BottomSheetBuilder(builder: (status, context) {
           return Positioned(
-            bottom: status.height > 130 ? status.height : 130,
+            bottom: status.height > 150 ? status.height : 150,
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
               height: 85,
@@ -62,7 +62,7 @@ class CameraPageBottom extends StatelessWidget {
           );
         }),
         Positioned(
-          bottom: 50,
+          bottom: 80,
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
             child: GetBuilder<CameraPageController>(builder: (controller) {

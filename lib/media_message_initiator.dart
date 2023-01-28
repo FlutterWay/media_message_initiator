@@ -25,11 +25,12 @@ class MediaMessageInitiator {
     config ??= Config();
     MediaMessage? msg;
     Get.put(EditorUpdater());
-    var controller = Get.put(CameraPageController(
+    var controller = Get.put(CameraPageController());
+    controller.configuration(
         onFinished: ((media, message) {
           msg = MediaMessage(text: message, media: media);
         }),
-        config: config));
+        config: config);
     controller.setSharedPeopleList = people;
     controller.getAvaliableCameras();
     var colors = config.emojiPickerConfig.mode == Mode.dark
@@ -85,5 +86,24 @@ class MediaMessageInitiator {
         PageTransition(
             type: PageTransitionType.rightToLeft, child: const CameraPage()));
     return msg;
+  }
+
+  static Future<void> setAvaliableCameras() async {
+    var controller = Get.put(CameraPageController());
+    await controller.getAvaliableCameras();
+  }
+
+  static Future<void> initializeCamera() async {
+    var controller = Get.put(CameraPageController());
+    await controller.initializeCamera();
+  }
+
+  static Future<void> dispose() async {
+    if (GetInstance().isRegistered<CameraPageController>()) {
+      await Get.find<CameraPageController>().disposeController();
+    }
+    if (GetInstance().isRegistered<EditorUpdater>()) {
+      Get.find<EditorUpdater>().disposeController();
+    }
   }
 }

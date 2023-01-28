@@ -7,7 +7,7 @@ import Foundation
 
 import emoji_picker_flutter
 import ffmpeg_kit_flutter_min_gpl
-import path_provider_macos
+import path_provider_foundation
 import shared_preferences_foundation
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {

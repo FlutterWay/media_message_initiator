@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '/controller/camera_page_controller.dart';
 import '/views/camera_page/camera_page_top/flash_icon.dart';
@@ -16,7 +17,7 @@ class _CameraPageTopState extends State<CameraPageTop> {
   Duration? videoDuration;
   var controller = Get.find<CameraPageController>();
   Timer? _timer;
-  late CameraLensDirection direction;
+  CameraLensDirection? direction;
   _CameraPageTopState() {
     direction = controller.cameraLensDirectio;
     controller.addListener(() {
@@ -61,8 +62,13 @@ class _CameraPageTopState extends State<CameraPageTop> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.close, color: controller.config.iconColor)),
+          onPressed: () {
+            Navigator.pop(context);
+            controller.onWillPop();
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          },
+          icon: Icon(Icons.close, color: controller.config.iconColor),
+        ),
         if (controller.cameraLensDirectio == CameraLensDirection.back)
           FlashIcon(),
       ],

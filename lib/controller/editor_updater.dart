@@ -7,4 +7,9 @@ class EditorUpdater extends GetxController {
     updatedEditor = id;
     update();
   }
+
+  void disposeController() {
+    updatedEditor = "";
+    GetInstance().delete<EditorUpdater>();
+  }
 }

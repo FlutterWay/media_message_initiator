@@ -120,7 +120,7 @@ class _ViewImageState extends State<ViewImage> {
       child: Stack(
         children: [
           Positioned(
-            top: 40,
+            top: 0,
             left: 10,
             child: IconButton(
                 onPressed: () async {
@@ -135,7 +135,7 @@ class _ViewImageState extends State<ViewImage> {
                 )),
           ),
           Positioned(
-            top: 40,
+            top: 0,
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,

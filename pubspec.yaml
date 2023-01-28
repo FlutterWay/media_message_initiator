@@ -19,15 +19,15 @@ dependencies:
   permission_handler: ^10.2.0
   video_editor: ^2.1.0
   video_thumbnail: ^0.5.3
-  gallery_picker: ^0.4.2
+  gallery_picker: ^0.4.5
   page_transition: ^2.0.9
   flutter_painter: ^1.0.1
   flutter_hsvcolor_picker: ^1.2.3
   flutter_keyboard_size: ^1.0.1
-  image_cropping: ^0.0.13
   flutter_emoji_gif_picker: ^0.1.1
-  crop_your_image: ^0.7.3
-  image: ^3.2.2
+  crop_your_image: ^0.7.4
+  image: ^4.0.12
+  shared_preferences: ^2.0.17
   photo_gallery: ^1.1.1
 dev_dependencies:
   flutter_test:
